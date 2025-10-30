@@ -321,7 +321,7 @@ class Game_Ship:
                     elif board[i][j] == 1:
                         color = self.colors["ship"]
                         text = ""
-                    else:  # Вода
+                    else:
                         color = self.colors["water"]
                         text = ""
 
