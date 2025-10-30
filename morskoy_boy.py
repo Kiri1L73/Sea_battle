@@ -13,11 +13,21 @@ class Ship:
         return self.hits == self.size
 
 
-class BattleshipGame:
+class Game_Ship:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Морской бой")
         self.root.geometry("800x600")
+
+        self.colors = {
+            "water": "#4A90E2",
+            "ship": "#5D4037",
+            "ship_hit": "#D32F2F",
+            "miss": "#BDBDBD",
+            "around_ship": "#757575",
+            "highlight": "#81C784",
+            "invalid": "#E57373"
+        }
 
         self.player_board = [[0] * 10 for _ in range(10)]
         self.bot_board = [[0] * 10 for _ in range(10)]
@@ -35,7 +45,6 @@ class BattleshipGame:
         self.game_over_flag = False
 
         self.sozdanie_glavnogo_okna()
-
     def sozdanie_glavnogo_okna(self):
         self.clear_window()
         self.game_over_flag = False
@@ -49,7 +58,6 @@ class BattleshipGame:
                   bg="lightgreen", width=20, height=2).pack(pady=10)
         tk.Button(center_frame, text="Справка", font=("Arial", 14), command=self.spravka,
                   bg="lightblue", width=20, height=2).pack(pady=10)
-
     def spravka(self):
         messagebox.showinfo("Справка",
                             "Цель игры: уничтожить первому все корабли соперника. \n\n"
@@ -62,7 +70,6 @@ class BattleshipGame:
 
     def nachalo_igri(self):
         self.sozdanie_igrovogo_polya()
-
     def sozdanie_igrovogo_polya(self):
         self.clear_window()
         self.game_over_flag = False
@@ -86,12 +93,12 @@ class BattleshipGame:
         control_frame = tk.Frame(self.root)
         control_frame.pack(pady=10)
         tk.Button(control_frame, text="Повернуть корабль", command=self.vibor_orientacii).pack(side=tk.LEFT, padx=5)
-        tk.Button(control_frame, text="Рандомная расстановка", command=self.random_rasstanovka_korablei).pack(side=tk.LEFT, padx=5)
+        tk.Button(control_frame, text="Рандомная расстановка", command=self.random_rasstanovka_korablei).pack(
+            side=tk.LEFT, padx=5)
         tk.Button(control_frame, text="Начать игру", command=self.proverka_na_razmechenie_vsex_korablei,
                   bg="lightgreen").pack(side=tk.LEFT, padx=5)
 
         self.sozdanie_polya_rasstanovka_korablei()
-
     def sozdanie_polya_rasstanovka_korablei(self):
         board_frame = tk.Frame(self.root)
         board_frame.pack(pady=20)
@@ -109,13 +116,12 @@ class BattleshipGame:
         for i in range(10):
             tk.Label(self.board_frame, text=str(i + 1), width=3, font=("Arial", 10, "bold")).grid(row=i, column=0)
             for j in range(10):
-                btn = tk.Button(self.board_frame, width=3, height=1, bg="lightblue",
+                btn = tk.Button(self.board_frame, width=3, height=1, bg=self.colors["water"],
                                 command=lambda x=i, y=j: self.razmechenie_vibrannogo_korablya(x, y))
                 btn.grid(row=i, column=j + 1, padx=1, pady=1)
                 btn.bind("<Enter>", lambda e, x=i, y=j: self.navedenie_na_kletky_pri_rasstanovke(x, y))
                 btn.bind("<Leave>", lambda e: self.skritie_prosmotra_pri_navedenii())
                 self.buttons[i][j] = btn
-
     def vibor_korablya(self, size):
         if self.game_over_flag:
             return
@@ -130,12 +136,10 @@ class BattleshipGame:
                     else:
                         btn.config(bg="#ff7777", fg="black", relief='raised')
             self.info_label.config(text=f"Выбран {size}-палубный корабль")
-
     def vibor_orientacii(self):
         if self.game_over_flag:
             return
         self.ship_orientation = "vertical" if self.ship_orientation == "horizontal" else "horizontal"
-
     def navedenie_na_kletky_pri_rasstanovke(self, x, y):
         if self.game_over_flag or not self.selected_ship_size:
             return
@@ -147,13 +151,12 @@ class BattleshipGame:
 
         valid = self.proverka_na_razmechenie_korablya(positions)
         for px, py in positions:
-            self.buttons[px][py].config(bg="lightgreen" if valid else "salmon")
-
+            self.buttons[px][py].config(bg=self.colors["highlight"] if valid else self.colors["invalid"])
     def skritie_prosmotra_pri_navedenii(self):
         for i in range(10):
             for j in range(10):
-                self.buttons[i][j].config(bg="gray" if self.player_board[i][j] == 1 else "lightblue")
-
+                self.buttons[i][j].config(
+                    bg=self.colors["ship"] if self.player_board[i][j] == 1 else self.colors["water"])
     def vichislenie_koordinat(self, x, y, size):
         if self.ship_orientation == "horizontal":
             if y + size > 10:
@@ -163,7 +166,6 @@ class BattleshipGame:
             if x + size > 10:
                 return None
             return [(x + i, y) for i in range(size)]
-
     def proverka_na_razmechenie_korablya(self, positions):
         for px, py in positions:
             if self.player_board[px][py] != 0:
@@ -174,7 +176,6 @@ class BattleshipGame:
                     if (nx, ny) not in positions:
                         return False
         return True
-
     def razmechenie_vibrannogo_korablya(self, x, y):
         if self.game_over_flag:
             return
@@ -189,7 +190,7 @@ class BattleshipGame:
         ship = Ship(size)
         for pos in positions:
             self.player_board[pos[0]][pos[1]] = 1
-            self.buttons[pos[0]][pos[1]].config(bg="gray")
+            self.buttons[pos[0]][pos[1]].config(bg=self.colors["ship"])
             ship.positions.append(pos)
 
         self.player_ships.append(ship)
@@ -202,7 +203,6 @@ class BattleshipGame:
         else:
             self.ship_buttons[size].config(bg="lightblue", fg="black")
         self.info_label.config(text="Выберите корабль для размещения")
-
     def random_rasstanovka_korablei(self):
         if self.game_over_flag:
             return
@@ -232,7 +232,8 @@ class BattleshipGame:
 
         for i in range(10):
             for j in range(10):
-                self.buttons[i][j].config(bg="gray" if self.player_board[i][j] == 1 else "lightblue")
+                self.buttons[i][j].config(
+                    bg=self.colors["ship"] if self.player_board[i][j] == 1 else self.colors["water"])
 
         for size, btn in self.ship_buttons.items():
             btn.config(text=f"{size}-палубный ({self.ships_to_place[size]} шт)")
@@ -240,7 +241,6 @@ class BattleshipGame:
                 btn.config(bg="#ff7777", fg="black", state=tk.DISABLED)
             else:
                 btn.config(bg="lightblue", fg="black", state=tk.NORMAL)
-
     def proverka_na_razmechenie_vsex_korablei(self):
         if self.game_over_flag:
             return
@@ -250,7 +250,6 @@ class BattleshipGame:
 
         self.rasstanovka_korablei_protivnika()
         self.start_game()
-
     def rasstanovka_korablei_protivnika(self):
         self.bot_board = [[0] * 10 for _ in range(10)]
         self.bot_ships = []
@@ -272,7 +271,6 @@ class BattleshipGame:
                             ship.positions.append(pos)
                         self.bot_ships.append(ship)
                         placed = True
-
     def proverka_rasstanovki_korablei_protivnika(self, positions):
         for px, py in positions:
             if self.bot_board[px][py] != 0:
@@ -283,7 +281,6 @@ class BattleshipGame:
                     if (nx, ny) not in positions:
                         return False
         return True
-
     def start_game(self):
         self.clear_window()
         self.game_over_flag = False
@@ -297,7 +294,6 @@ class BattleshipGame:
 
         self.status_label = tk.Label(self.root, text="Ваш ход!", font=("Arial", 14), fg="black")
         self.status_label.pack(pady=10)
-
     def sozdanie_igrovogo_polya_battle(self, parent, title, board, column, interactive):
         frame = tk.Frame(parent)
         frame.grid(row=0, column=column, padx=20)
@@ -310,11 +306,27 @@ class BattleshipGame:
         for i in range(10):
             for j in range(10):
                 if interactive:
-                    btn = tk.Button(board_frame, width=3, height=1, bg="lightblue",
+                    btn = tk.Button(board_frame, width=3, height=1, bg=self.colors["water"],
                                     command=lambda x=i, y=j: self.obrabotka_xoda_polzovatelya(x, y))
                 else:
-                    color = "gray" if board[i][j] == 1 else "lightblue"
-                    btn = tk.Button(board_frame, width=3, height=1, bg=color, state=tk.DISABLED)
+                    if board[i][j] == 2:
+                        color = self.colors["ship_hit"]
+                        text = "X"
+                    elif board[i][j] == 3:
+                        color = self.colors["miss"]
+                        text = "•"
+                    elif board[i][j] == 5:
+                        color = self.colors["around_ship"]
+                        text = "•"
+                    elif board[i][j] == 1:
+                        color = self.colors["ship"]
+                        text = ""
+                    else:  # Вода
+                        color = self.colors["water"]
+                        text = ""
+
+                    btn = tk.Button(board_frame, width=3, height=1, bg=color, text=text,
+                                    state=tk.DISABLED, disabledforeground="white")
                 btn.grid(row=i, column=j, padx=1, pady=1)
                 buttons[i][j] = btn
 
@@ -322,15 +334,14 @@ class BattleshipGame:
             self.bot_buttons = buttons
         else:
             self.player_buttons = buttons
-
     def obrabotka_xoda_polzovatelya(self, x, y):
-        if self.game_over_flag or not self.player_turn or self.bot_board[x][y] in (2, 3):
+        if self.game_over_flag or not self.player_turn or self.bot_board[x][y] in (2, 3, 5):
             return
 
         if self.bot_board[x][y] == 1:
             self.bot_board[x][y] = 2
-            self.bot_buttons[x][y].config(bg="red", text="X", state=tk.DISABLED)
-
+            self.bot_buttons[x][y].config(bg=self.colors["ship_hit"], text="X",
+                                          disabledforeground="white", state=tk.DISABLED)
             for ship in self.bot_ships:
                 if (x, y) in ship.positions:
                     ship.hits += 1
@@ -342,41 +353,40 @@ class BattleshipGame:
                     break
         else:
             self.bot_board[x][y] = 3
-            self.bot_buttons[x][y].config(bg="yellow", text="•", state=tk.DISABLED)
+            self.bot_buttons[x][y].config(bg=self.colors["miss"], text="•",
+                                          disabledforeground="black", state=tk.DISABLED)
             self.status_label.config(text="Промах! Ход противника.")
             self.player_turn = False
             self.root.after(400, self.xod_protivnika)
 
         if all(ship.is_sunk() for ship in self.bot_ships):
             self.game_over("Вы победили!")
-
     def otmetka_vokrug_korablya(self, ship):
         for px, py in ship.positions:
             for dx in (-1, 0, 1):
                 for dy in (-1, 0, 1):
                     nx, ny = px + dx, py + dy
                     if 0 <= nx < 10 and 0 <= ny < 10 and self.bot_board[nx][ny] == 0:
-                        self.bot_board[nx][ny] = 3
-                        self.bot_buttons[nx][ny].config(bg="yellow", text="•", state=tk.DISABLED)
-
+                        self.bot_board[nx][ny] = 5
+                        self.bot_buttons[nx][ny].config(bg=self.colors["around_ship"], text="•",
+                                                        disabledforeground="black")
     def xod_protivnika(self):
         if self.game_over_flag:
             return
         if self.bot_hunt_stack:
             x, y = self.bot_hunt_stack.pop(0)
-            if 0 <= x < 10 and 0 <= y < 10 and self.player_board[x][y] not in (2, 3):
+            if 0 <= x < 10 and 0 <= y < 10 and self.player_board[x][y] not in (2, 3, 5):
                 self.obrabotka_xoda_protivnika(x, y)
                 return
 
-        empty_cells = [(i, j) for i in range(10) for j in range(10) if self.player_board[i][j] not in (2, 3)]
+        empty_cells = [(i, j) for i in range(10) for j in range(10) if self.player_board[i][j] not in (2, 3, 5)]
         if empty_cells:
             x, y = random.choice(empty_cells)
             self.obrabotka_xoda_protivnika(x, y)
-
     def obrabotka_xoda_protivnika(self, x, y):
         if self.player_board[x][y] == 1:
             self.player_board[x][y] = 2
-            self.player_buttons[x][y].config(bg="red", text="X")
+            self.player_buttons[x][y].config(bg=self.colors["ship_hit"], text="X")
 
             for ship in self.player_ships:
                 if (x, y) in ship.positions:
@@ -394,29 +404,26 @@ class BattleshipGame:
             self.root.after(400, self.xod_protivnika)
         else:
             self.player_board[x][y] = 3
-            self.player_buttons[x][y].config(bg="yellow", text="•")
+            self.player_buttons[x][y].config(bg=self.colors["miss"], text="•")
             self.status_label.config(text="Ваш ход!")
             self.player_turn = True
 
         if all(ship.is_sunk() for ship in self.player_ships):
             self.game_over("Противник победил!")
-
     def otmetka_vokrug_korablya_igroka(self, ship):
         for px, py in ship.positions:
             for dx in (-1, 0, 1):
                 for dy in (-1, 0, 1):
                     nx, ny = px + dx, py + dy
                     if 0 <= nx < 10 and 0 <= ny < 10 and self.player_board[nx][ny] == 0:
-                        self.player_board[nx][ny] = 3
-                        self.player_buttons[nx][ny].config(bg="yellow", text="•")
-
+                        self.player_board[nx][ny] = 5
+                        self.player_buttons[nx][ny].config(bg=self.colors["around_ship"], text="•")
     def game_over(self, message):
         self.game_over_flag = True
         messagebox.showinfo("Игра окончена", message)
 
         tk.Button(self.root, text="Начать игру заново", command=self.restart_game,
                   font=("Arial", 14), bg="lightgreen", width=20, height=2).pack(pady=20)
-
     def restart_game(self):
         self.player_board = [[0] * 10 for _ in range(10)]
         self.bot_board = [[0] * 10 for _ in range(10)]
@@ -431,15 +438,12 @@ class BattleshipGame:
         self.game_over_flag = False
 
         self.sozdanie_igrovogo_polya()
-
     def clear_window(self):
         for widget in self.root.winfo_children():
             widget.destroy()
-
     def run(self):
         self.root.mainloop()
 
-
 if __name__ == "__main__":
-    game = BattleshipGame()
+    game = Game_Ship()
     game.run()
